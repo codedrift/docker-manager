@@ -1,0 +1,15 @@
+{
+  "include": ["src"],
+  "compilerOptions": {
+    "target": "ES2015",
+    "module": "CommonJS",
+    "lib": ["ES2020"],
+    "moduleResolution": "Node",
+    "outDir": "./build",
+    "esModuleInterop": true,
+    "noImplicitAny": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "strict": true
+  }
+}

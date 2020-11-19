@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Containers</title>
+    <style>
+      body {
+        background-color: black;
+      }
+      pre {
+        color: white;
+        font-size: 18px;
+      }
+      a {
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    {{#each containers}}
+    <a href="/logs/{{this.id}}?type=html">
+      <pre>{{this.text}}</pre>
+    </a>
+    {{/each}}
+  </body>
+</html>

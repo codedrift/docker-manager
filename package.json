@@ -1,0 +1,62 @@
+{
+  "name": "docker-manager",
+  "private": true,
+  "main": "./build/main.js",
+  "scripts": {
+    "start": "npm run build && node ./build/main.js",
+    "start:dev": "env-cmd ts-node-dev --respawn --transpile-only ./src/main.ts",
+    "build": "tsc",
+    "test": "jest src",
+    "lint": "eslint src --ext .ts"
+  },
+  "dependencies": {
+    "@types/body-parser": "1.19.0",
+    "@types/cors": "2.8.8",
+    "@types/dockerode": "^3.2.1",
+    "@types/express": "4.17.8",
+    "@types/jest": "26.0.15",
+    "@types/jsonwebtoken": "8.5.0",
+    "@types/socket.io": "2.1.11",
+    "@types/uniqid": "5.2.0",
+    "axios": "^0.21.0",
+    "body-parser": "1.19.0",
+    "cors": "2.8.5",
+    "dockerode": "^3.2.1",
+    "env-cmd": "10.1.0",
+    "express": "4.17.1",
+    "express-winston": "4.0.5",
+    "handlebars": "^4.7.6",
+    "jest": "26.6.1",
+    "socket.io": "2.3.0",
+    "ts-node": "9.0.0",
+    "typescript": "4.0.3",
+    "uniqid": "5.2.0",
+    "winston": "3.3.3"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "4.5.0",
+    "@typescript-eslint/parser": "4.5.0",
+    "dockerlint": "0.3.9",
+    "eslint": "7.11.0",
+    "eslint-config-prettier": "6.14.0",
+    "husky": "4.3.0",
+    "lint-staged": "10.4.2",
+    "prettier": "2.1.2",
+    "ts-jest": "26.4.1",
+    "ts-node-dev": "^1.0.0"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.ts": [
+      "prettier --write",
+      "eslint"
+    ],
+    "*.{md,json,yml}": [
+      "prettier --write"
+    ]
+  }
+}
