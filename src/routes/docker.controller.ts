@@ -1,17 +1,15 @@
-import Axios from "axios";
 import Docker from "dockerode";
 import { RequestHandler } from "express";
+import { CreateContainerRequest } from "../model";
 import { logger } from "../utils";
-import { sleep } from "../utils/sleep";
+import { waitForReadiness } from "../utils/docker";
 import { renderHtmlTemplate } from "../utils/template";
+import uniqid from "uniqid";
 
-const docker = new Docker({ socketPath: "/var/run/docker.sock" });
+const docker = new Docker({ socketPath: process.env.DOCKER_SOCK });
 
 export const getProcessSnapshot: RequestHandler = async (req, res) => {
-  const containersResult = await docker.listContainers();
-  console.log(containersResult);
-
-  const containers = containersResult.map((container) => ({
+  const containers = (await docker.listContainers()).map((container) => ({
     id: container.Id,
     name: container.Names.join("/"),
     state: container.State,
@@ -30,22 +28,10 @@ export const getProcessSnapshot: RequestHandler = async (req, res) => {
 
     res.setHeader("Content-Type", "text/html");
     res.send(html);
-  } else {
-    res.send(containers);
+    return;
   }
-};
 
-type CreateContainerRequest = {
-  name: string;
-  readyRoute?: string;
-  readyTimeoutMs?: number;
-  image: string;
-  ports?: Array<{
-    host: number;
-    container: number;
-    type?: "tcp" | "udp";
-  }>;
-  env?: string[];
+  res.send(containers);
 };
 
 export const createContainer: RequestHandler = async (req, res) => {
@@ -61,6 +47,7 @@ export const createContainer: RequestHandler = async (req, res) => {
         },
       ];
     });
+    const name = body.name || uniqid();
     const container = await docker.createContainer({
       Image: body.image,
       Env: body.env || [],
@@ -70,43 +57,23 @@ export const createContainer: RequestHandler = async (req, res) => {
       HostConfig: {
         PortBindings,
       },
-      name: body.name,
+      name,
+      NetworkingConfig: {
+        EndpointsConfig: {
+          manager_network: {
+            NetworkID: "manager_network",
+          },
+        },
+      },
     });
+    console.log(container);
     await container.start();
 
-    const readyTimeStart = Date.now();
-    const maxReadyTime = body.readyTimeoutMs || 10000;
-    const timeout = readyTimeStart + maxReadyTime;
-
-    if (body.readyRoute) {
-      logger.info(`Checking readyness for ${maxReadyTime}ms`);
-      while (Date.now() < timeout) {
-        logger.debug(
-          `Checking container readiness ${Date.now() - readyTimeStart}`
-        );
-        try {
-          const hostPort = body.ports?.find(Boolean)?.host;
-          if (hostPort) {
-            const healthResult = await Axios.get(
-              `http://localhost:${hostPort}${body.readyRoute}`
-            );
-            if (healthResult.status === 200) {
-              logger.info("Container is healthy");
-              break;
-            }
-          }
-        } catch (error) {
-          logger.debug("Error checking container readiness", error);
-        }
-        sleep(10);
-      }
-      if (!(Date.now() < timeout)) {
-        logger.warn("Container was not ready in time");
-        throw new Error("Container was not ready in time");
-      }
-    }
-
-    const readyTime = Date.now() - readyTimeStart;
+    const readyTime = await waitForReadiness(
+      name,
+      body.readyRoute,
+      body.readyTimeoutMs,
+    );
 
     res.send({ id: container.id, readyTimeMs: readyTime });
   } catch (error) {
@@ -137,9 +104,10 @@ export const getContainerLogs: RequestHandler = async (req, res) => {
         logs: sanitized.split("\n").reverse().join("\n"),
       });
       res.send(html);
-    } else {
-      res.send(sanitized);
+      return;
     }
+
+    res.send(sanitized);
   } catch (error) {
     console.log("Error getting logs", error);
     res.status(500).send(error);

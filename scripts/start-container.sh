@@ -11,7 +11,7 @@ curl -X POST localhost:8080/containers \
       "container": 8080
   }],
   "env": ["FOO=BAR"],
-  "readyRoute": "/health",
+  "readyRoute": ":8080/health",
   "readyTimeoutMs": 1000
 }
 EOF

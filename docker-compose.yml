@@ -1,0 +1,19 @@
+version: "3.3"
+services:
+  docker-manager:
+    build: .
+    container_name: docker-manager
+    ports:
+    - 8080:8080
+    environment: 
+      - NODE_ENV=development
+      - DOCKER_SOCK=/var/run/docker.sock
+      - CONNECT_HOST=docker
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    networks:
+      - manager
+        
+networks:
+  manager:
+    name: manager_network
