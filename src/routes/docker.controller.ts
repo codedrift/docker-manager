@@ -11,7 +11,7 @@ const docker = new Docker({ socketPath: "/var/run/docker.sock" });
 export const getProcessSnapshot: RequestHandler = async (req, res) => {
   const containers = (await docker.listContainers()).map((container) => ({
     id: container.Id,
-    name: container.Names.join("/"),
+    name: container.Names.find(Boolean)?.replace("/", ""),
     state: container.State,
     image: container.Image,
     status: container.Status,
