@@ -6,7 +6,7 @@ import { waitForReadiness } from "../utils/docker";
 import { renderHtmlTemplate } from "../utils/template";
 import uniqid from "uniqid";
 
-const docker = new Docker({ socketPath: process.env.DOCKER_SOCK });
+const docker = new Docker({ socketPath: "/var/run/docker.sock" });
 
 export const getProcessSnapshot: RequestHandler = async (req, res) => {
   const containers = (await docker.listContainers()).map((container) => ({
@@ -61,6 +61,7 @@ export const createContainer: RequestHandler = async (req, res) => {
       NetworkingConfig: {
         EndpointsConfig: {
           manager_network: {
+            // Start new container in manager network to perform health/ready check
             NetworkID: "manager_network",
           },
         },

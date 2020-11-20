@@ -2,6 +2,8 @@ import Axios from "axios";
 import { logger } from "./logger";
 import { sleep } from "./sleep";
 
+const CONNECT_HOST = process.env.CONNECT_HOST || "docker";
+
 export const waitForReadiness = async (
   containerName: string,
   readyRoute?: string,
@@ -15,8 +17,9 @@ export const waitForReadiness = async (
     while (Date.now() < timeout) {
       
       try {
+        
         const host =
-          process.env.CONNECT_HOST === "docker" ? containerName : "localhost";
+          CONNECT_HOST === "docker" ? containerName : "localhost";
         const redyCheckUrl = `http://${host}${readyRoute}`;
         logger.debug(
           `Checking container readiness ${Date.now() - readyTimeStart} url=${redyCheckUrl}`
