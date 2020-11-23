@@ -1,10 +1,10 @@
 import Docker from "dockerode";
 import { RequestHandler } from "express";
+import uniqid from "uniqid";
 import { CreateContainerRequest } from "../model";
 import { logger } from "../utils";
 import { waitForReadiness } from "../utils/docker";
 import { renderHtmlTemplate } from "../utils/template";
-import uniqid from "uniqid";
 
 const docker = new Docker({ socketPath: "/var/run/docker.sock" });
 
@@ -73,7 +73,7 @@ export const createContainer: RequestHandler = async (req, res) => {
     const readyTime = await waitForReadiness(
       name,
       body.readyRoute,
-      body.readyTimeoutMs,
+      body.readyTimeoutMs
     );
 
     res.send({ id: container.id, readyTimeMs: readyTime });
@@ -87,21 +87,23 @@ export const getContainerLogs: RequestHandler = async (req, res) => {
   try {
     const id = req.params.id;
     logger.info(`Get logs for container ${id}`);
+    const container = await docker.getContainer(id).inspect();
+
     const logs = await docker.getContainer(id).logs({
       stdout: true,
       stderr: true,
-      timestamps: true,
     });
 
-    const sanitized = String(logs).replace(
-      // eslint-disable-next-line no-control-regex
-      /[\x00-\x09\x0B-\x0C\x0E-\x1F\x7F-\x9F]/g,
-      ""
-    );
+    const sanitized = String(logs)
+    // .replace(
+    //   // eslint-disable-next-line no-control-regex
+    //   /[\x00-\x09\x0B-\x0C\x0E-\x1F\x7F-\x9F]/g,
+    //   ""
+    // );
 
     if (req.query.type === "html") {
       const html = renderHtmlTemplate("logs.html", {
-        id,
+        name: container.Name?.replace("/", ""),
         logs: sanitized.split("\n").reverse().join("\n"),
       });
       res.send(html);

@@ -11,7 +11,7 @@ docker-compose up
 ## Run without compose
 
 ```bash
-docker run -p 8080:8080 -v /var/run/docker.sock:/var/run/docker.sock alphabetapeter/docker-manager 
+docker run -d -p 8080:8080 -v /var/run/docker.sock:/var/run/docker.sock codedriftdotnet/docker-manager:latest --name=docker-manager
 ```
 
 

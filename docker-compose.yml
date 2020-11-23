@@ -1,7 +1,7 @@
 version: "3.3"
 services:
   docker-manager:
-    image: alphabetapeter/docker-manager
+    image: codedriftdotnet/docker-manager:latest
     build: .
     container_name: docker-manager
     ports:
